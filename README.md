@@ -1,10 +1,54 @@
-# 📊 gmsv_serverstat
+# gmsv_serverstat
 
-Simple serverside binary module which can expose information about system resource usage to Lua.
+Binary module for Garry's Mod servers that exposes system resource usage via a Prometheus metrics endpoint. Optionally includes a Lua API for accessing the same data from server-side Lua scripts.
 
-# Installation
+## Prometheus Metrics
 
-Download the relevant module for your server's operating system and platform/Gmod branch from the [releases section](https://github.com/WilliamVenner/gmsv_serverstat/releases).
+The module automatically starts an HTTP server that exposes a `/metrics` endpoint for Prometheus to scrape. No Lua code is required — just load the module and point Prometheus at it.
+
+**Default bind address:** `0.0.0.0:9101`
+
+Override with the `SERVERSTAT_METRICS_BIND` environment variable (e.g. `SERVERSTAT_METRICS_BIND=127.0.0.1:9200`).
+
+### Exported Metrics
+
+| Metric | Description |
+| --- | --- |
+| `srcds_process_cpu_usage` | SRCDS process CPU usage (0.0–1.0, normalized by core count) |
+| `srcds_process_memory_mib` | SRCDS process resident memory in MiB |
+| `srcds_system_cpu_usage` | System-wide CPU usage (0.0–100.0) |
+| `srcds_system_memory_used_mib` | System used memory in MiB |
+| `srcds_system_memory_available_mib` | System available memory in MiB |
+| `srcds_system_memory_total_mib` | System total memory in MiB (static) |
+| `srcds_logical_cpus` | Number of logical CPU cores (static) |
+| `srcds_physical_cpus` | Number of physical CPU cores (static) |
+
+Dynamic metrics are refreshed every 2 seconds on a background thread.
+
+### Prometheus Configuration
+
+Add a scrape target for each server running the module:
+
+```yaml
+scrape_configs:
+  - job_name: "srcds"
+    static_configs:
+      - targets: ["your-server:9101"]
+```
+
+### Grafana Dashboard Import
+
+To visualize the metrics in Grafana:
+
+1. Go to **Dashboards > New > Import**
+2. Upload or paste the JSON from the [Example File](grafana-dashboard.json).
+3. Select your Prometheus datasource when prompted
+
+The pre-built dashboards include panels for CPU usage, memory usage, and fleet-wide overviews.
+
+## Installation
+
+Download the relevant module for your server's operating system and platform from the [releases section](https://github.com/WilliamVenner/gmsv_serverstat/releases).
 
 Drop the module into `garrysmod/lua/bin/` in your server's files. If the `bin` folder doesn't exist, create it.
 
@@ -14,15 +58,17 @@ If you're not sure on what operating system/platform your server is running, run
 lua_run print((system.IsWindows()and"Windows"or system.IsLinux()and"Linux"or"Unsupported").." "..(jit.arch=="x64"and"x86-64"or"x86"))
 ```
 
-# Usage
+## Lua API (Feature: `lua-api`)
 
-To load the module, simply [`require`](https://wiki.facepunch.com/gmod/Global.require) it:
+The Lua API is behind the `lua-api` Cargo feature. Builds from the releases section include it by default.
+
+To load the module, [`require`](https://wiki.facepunch.com/gmod/Global.require) it:
 
 ```lua
 require("serverstat")
 ```
 
-## Blocking Functions
+### Blocking Functions
 
 Some of these functions may block the main thread whilst acquiring information about the system & process. Make sure to call these functions sparingly.
 
@@ -60,7 +106,7 @@ serverstat.SystemAvailableMemory()
 serverstat.PhysicalCPUs()
 
 -- Gets the system's number of logical CPUs
--- Roughly equates to physical cores (CPUs) × threads per core
+-- Roughly equates to physical cores (CPUs) x threads per core
 -- [integer]
 serverstat.LogicalCPUs()
 
@@ -80,7 +126,7 @@ serverstat.AllSystem()
 serverstat.AllProcess()
 ```
 
-## Asynchronous Functions
+### Asynchronous Functions
 
 Each blocking function has an asynchronous equivalent in the `serverstat.async` table which takes a single `function` callback argument.
 
@@ -102,7 +148,7 @@ serverstat.async.AllSystem(function(data) ... end)
 serverstat.async.AllProcess(function(data) ... end)
 ```
 
-## Realtime Functions
+### Realtime Functions
 
 Additionally, serverstat provides a "realtime" data API.
 

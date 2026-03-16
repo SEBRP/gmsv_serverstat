@@ -12,13 +12,11 @@ jobs:
   build_linux:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Install gcc-multilib
       run: sudo apt-get install gcc-multilib
-    - name: Install nightly toolchain
-      run: rustup toolchain install nightly
     - name: Add targets
-      run: rustup target add x86_64-unknown-linux-gnu && rustup target add i686-unknown-linux-gnu
+      run: rustup target add x86_64-unknown-linux-gnu i686-unknown-linux-gnu
     - name: Build 64-bit
       run: cargo build --release --target x86_64-unknown-linux-gnu
     - name: Build 32-bit
@@ -32,7 +30,7 @@ jobs:
         mv target/i686-unknown-linux-gnu/release/libgmsv_serverstat.so target/i686-unknown-linux-gnu/release/gmsv_serverstat_linux.dll
         mv target/x86_64-unknown-linux-gnu/release/libgmsv_serverstat.so target/x86_64-unknown-linux-gnu/release/gmsv_serverstat_linux64.dll
     - name: Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         files: |
           target/i686-unknown-linux-gnu/release/gmsv_serverstat_linux.dll
@@ -43,11 +41,9 @@ jobs:
   build_windows:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Install nightly toolchain
-      run: rustup toolchain install nightly
+    - uses: actions/checkout@v4
     - name: Add targets
-      run: rustup target add x86_64-pc-windows-msvc && rustup target add i686-pc-windows-msvc
+      run: rustup target add x86_64-pc-windows-msvc i686-pc-windows-msvc
     - name: Build 64-bit
       run: cargo build --release --target x86_64-pc-windows-msvc
       env:
@@ -61,7 +57,7 @@ jobs:
         mv target/i686-pc-windows-msvc/release/gmsv_serverstat.dll target/i686-pc-windows-msvc/release/gmsv_serverstat_win32.dll
         mv target/x86_64-pc-windows-msvc/release/gmsv_serverstat.dll target/x86_64-pc-windows-msvc/release/gmsv_serverstat_win64.dll
     - name: Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         files: |
           target/i686-pc-windows-msvc/release/gmsv_serverstat_win32.dll
