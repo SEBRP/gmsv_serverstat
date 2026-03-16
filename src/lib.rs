@@ -1,95 +1,27 @@
-#![feature(c_unwind)]
+#![allow(unsafe_op_in_unsafe_fn)]
 
 #[macro_use]
-extern crate lazy_static;
+extern crate gmod;
 
-#[macro_use]
-mod lua;
-
-mod r#async;
 mod sysinfo;
-mod export;
-mod realtime;
+mod prometheus;
 
-#[no_mangle]
-pub unsafe extern "C-unwind" fn gmod13_open(lua: lua::State) -> i32 {
-	lua.new_table(); // serverstat
-	lua.new_table(); // async
-	lua.new_table(); // realtime
+#[cfg(feature = "lua-api")]
+mod lua_api;
 
-	macro_rules! push_api_func {
-		($func:ident, $name:literal) => {
-			lua.push_function(export::sync::$func);
-			lua.set_field(-4, lua_string!($name));
+#[cfg(not(feature = "lua-api"))]
+mod entry {
+	use gmod::lua::State as LuaState;
 
-			lua.push_function(export::r#async::$func);
-			lua.set_field(-3, lua_string!($name));
-		}
+	#[gmod13_open]
+	unsafe fn gmod13_open(_lua: LuaState) -> i32 {
+		crate::prometheus::start();
+		0
 	}
 
-	macro_rules! push_realtime_api_func {
-		($func:ident, $name:literal) => {
-			lua.push_function(export::sync::$func);
-			lua.set_field(-4, lua_string!($name));
-
-			lua.push_function(export::r#async::$func);
-			lua.set_field(-3, lua_string!($name));
-
-			lua.push_function(realtime::$func);
-			lua.set_field(-2, lua_string!($name));
-		}
+	#[gmod13_close]
+	unsafe fn gmod13_close(_lua: LuaState) -> i32 {
+		crate::prometheus::stop();
+		0
 	}
-
-	macro_rules! push_realtime_func {
-		($func:ident, $name:literal) => {
-			lua.push_function(realtime::$func);
-			lua.set_field(-2, lua_string!($name));
-		}
-	}
-
-	push_realtime_api_func!(process_cpu_usage, "ProcessCPUUsage");
-	push_realtime_api_func!(process_memory_usage, "ProcessMemoryUsage");
-	push_realtime_api_func!(system_cpu_usage, "SystemCPUUsage");
-	push_realtime_api_func!(system_memory_usage, "SystemMemoryUsage");
-	push_realtime_api_func!(system_available_memory, "SystemAvailableMemory");
-
-	push_api_func!(all, "All");
-	push_api_func!(all_system, "AllSystem");
-	push_api_func!(all_process, "AllProcess");
-	push_api_func!(system_total_memory, "SystemTotalMemory");
-	push_api_func!(logical_cpus, "PhysicalCPUs");
-	push_api_func!(physical_cpus, "LogicalCPUs");
-
-	push_realtime_func!(start, "Start");
-	push_realtime_func!(stop, "Stop");
-	push_realtime_func!(all, "All");
-	push_realtime_func!(all, "AllCopy");
-	push_realtime_func!(all_system, "AllSystem");
-	push_realtime_func!(all_system, "AllSystemCopy");
-	push_realtime_func!(all_process, "AllProcess");
-	push_realtime_func!(all_process, "AllProcessCopy");
-	push_realtime_func!(set_interval, "SetInterval");
-
-	lua.set_field(-3, lua_string!("realtime"));
-	lua.set_field(-2, lua_string!("async"));
-	lua.set_global(lua_string!("serverstat"));
-	0
-}
-
-#[no_mangle]
-pub unsafe extern "C-unwind" fn gmod13_close(lua: lua::State) -> i32 {
-	lua.get_global(lua_string!("hook"));
-	lua.get_field(-1, lua_string!("Remove"));
-	lua.push_string("Tick");
-	lua.push_string("gmsv_serverstat");
-	lua.call(2, 0);
-	lua.pop();
-
-	lua.get_global(lua_string!("timer"));
-	lua.get_field(-1, lua_string!("Remove"));
-	lua.push_string("gmsv_serverstat_realtime");
-	lua.call(1, 0);
-	lua.pop();
-
-	0
 }

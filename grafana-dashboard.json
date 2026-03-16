@@ -1,0 +1,241 @@
+{
+  "id": null,
+  "uid": "srcds-server-stats",
+  "title": "SRCDS Server Stats",
+  "description": "Per-server system and process metrics exported by gmsv_serverstat",
+  "tags": ["srcds", "serverstat", "gmod"],
+  "timezone": "browser",
+  "editable": true,
+  "graphTooltip": 1,
+  "refresh": "15s",
+  "time": { "from": "now-1h", "to": "now" },
+  "templating": {
+    "list": [
+      {
+        "name": "datasource",
+        "type": "datasource",
+        "query": "prometheus",
+        "current": {},
+        "hide": 0
+      },
+      {
+        "name": "instance",
+        "label": "Server",
+        "type": "query",
+        "datasource": { "uid": "${datasource}" },
+        "query": "label_values(srcds_process_cpu_usage, instance)",
+        "multi": true,
+        "includeAll": true,
+        "current": { "selected": true, "text": "All", "value": "$__all" },
+        "refresh": 2,
+        "hide": 0
+      }
+    ]
+  },
+  "panels": [
+    {
+      "title": "Process CPU",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
+      "datasource": { "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "thresholds": { "steps": [
+            { "color": "green", "value": null },
+            { "color": "yellow", "value": 0.5 },
+            { "color": "red", "value": 0.8 }
+          ]}
+        }
+      },
+      "targets": [{
+        "expr": "srcds_process_cpu_usage{instance=~\"$instance\"}",
+        "legendFormat": "{{instance}}"
+      }]
+    },
+    {
+      "title": "Process Memory",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
+      "datasource": { "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "MiB",
+          "thresholds": { "steps": [
+            { "color": "green", "value": null },
+            { "color": "yellow", "value": 1024 },
+            { "color": "red", "value": 2048 }
+          ]}
+        }
+      },
+      "targets": [{
+        "expr": "srcds_process_memory_mib{instance=~\"$instance\"}",
+        "legendFormat": "{{instance}}"
+      }]
+    },
+    {
+      "title": "System CPU",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 0 },
+      "datasource": { "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": { "steps": [
+            { "color": "green", "value": null },
+            { "color": "yellow", "value": 60 },
+            { "color": "red", "value": 85 }
+          ]}
+        }
+      },
+      "targets": [{
+        "expr": "srcds_system_cpu_usage{instance=~\"$instance\"}",
+        "legendFormat": "{{instance}}"
+      }]
+    },
+    {
+      "title": "Memory Used",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 0 },
+      "datasource": { "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "MiB",
+          "thresholds": { "steps": [
+            { "color": "green", "value": null },
+            { "color": "yellow", "value": 8192 },
+            { "color": "red", "value": 14336 }
+          ]}
+        }
+      },
+      "targets": [{
+        "expr": "srcds_system_memory_used_mib{instance=~\"$instance\"}",
+        "legendFormat": "{{instance}}"
+      }]
+    },
+    {
+      "title": "Memory Available",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 0 },
+      "datasource": { "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "MiB",
+          "color": { "mode": "fixed", "fixedColor": "blue" }
+        }
+      },
+      "targets": [{
+        "expr": "srcds_system_memory_available_mib{instance=~\"$instance\"}",
+        "legendFormat": "{{instance}}"
+      }]
+    },
+    {
+      "title": "Total Memory",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 0 },
+      "datasource": { "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "MiB",
+          "color": { "mode": "fixed", "fixedColor": "purple" }
+        }
+      },
+      "targets": [{
+        "expr": "srcds_system_memory_total_mib{instance=~\"$instance\"}",
+        "legendFormat": "{{instance}}"
+      }]
+    },
+    {
+      "title": "CPU Usage (over time)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "datasource": { "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "fillOpacity": 15 }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byRegexp", "options": ".*system.*" },
+            "properties": [{ "id": "unit", "value": "percent" }]
+          },
+          {
+            "matcher": { "id": "byRegexp", "options": ".*process.*" },
+            "properties": [{ "id": "unit", "value": "percentunit" }]
+          }
+        ]
+      },
+      "targets": [
+        {
+          "expr": "srcds_process_cpu_usage{instance=~\"$instance\"}",
+          "legendFormat": "process {{instance}}"
+        },
+        {
+          "expr": "srcds_system_cpu_usage{instance=~\"$instance\"}",
+          "legendFormat": "system {{instance}}"
+        }
+      ]
+    },
+    {
+      "title": "Memory Usage (over time)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "datasource": { "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "MiB",
+          "custom": { "fillOpacity": 15 }
+        }
+      },
+      "targets": [
+        {
+          "expr": "srcds_process_memory_mib{instance=~\"$instance\"}",
+          "legendFormat": "process {{instance}}"
+        },
+        {
+          "expr": "srcds_system_memory_used_mib{instance=~\"$instance\"}",
+          "legendFormat": "system used {{instance}}"
+        }
+      ]
+    },
+    {
+      "title": "Available Memory (over time)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "datasource": { "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "MiB",
+          "custom": { "fillOpacity": 15 }
+        }
+      },
+      "targets": [{
+        "expr": "srcds_system_memory_available_mib{instance=~\"$instance\"}",
+        "legendFormat": "{{instance}}"
+      }]
+    },
+    {
+      "title": "CPU Cores",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "datasource": { "uid": "${datasource}" },
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "fillOpacity": 10, "drawStyle": "bars" }
+        }
+      },
+      "targets": [
+        {
+          "expr": "srcds_logical_cpus{instance=~\"$instance\"}",
+          "legendFormat": "logical {{instance}}"
+        },
+        {
+          "expr": "srcds_physical_cpus{instance=~\"$instance\"}",
+          "legendFormat": "physical {{instance}}"
+        }
+      ]
+    }
+  ],
+  "schemaVersion": 37,
+  "version": 1
+}

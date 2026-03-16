@@ -2,7 +2,7 @@
 name = "gmsv_serverstat"
 version = "0.2.5"
 authors = ["William Venner <william@venner.io>"]
-edition = "2018"
+edition = "2024"
 
 [lib]
 crate-type = ["cdylib"]
@@ -11,8 +11,13 @@ crate-type = ["cdylib"]
 lto = 'thin'
 codegen-units = 1
 
+[features]
+default = []
+lua-api = ["crossbeam"]
+
 [dependencies]
-libloading = "0.7"
-lazy_static = "1.4"
-sysinfo = { version = "0.21", default-features = false }
-crossbeam = { version = "0.8", default-features = false, features = ["crossbeam-channel", "std"] }
+gmod = "17"
+sysinfo = "0.38"
+metrics = "0.24"
+metrics-exporter-prometheus = { version = "0.18", default-features = false, features = ["http-listener"] }
+crossbeam = { version = "0.8", default-features = false, features = ["crossbeam-channel", "std"], optional = true }
