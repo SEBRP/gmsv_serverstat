@@ -8,6 +8,9 @@ on:
 env:
   CARGO_TERM_COLOR: always
 
+permissions:
+  contents: write
+
 jobs:
   build_linux:
     runs-on: ubuntu-latest
@@ -32,11 +35,10 @@ jobs:
     - name: Release
       uses: softprops/action-gh-release@v2
       with:
+        token: ${{ secrets.PRIVATE_TOKEN }}
         files: |
           target/i686-unknown-linux-gnu/release/gmsv_serverstat_linux.dll
           target/x86_64-unknown-linux-gnu/release/gmsv_serverstat_linux64.dll
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build_windows:
     runs-on: windows-latest
@@ -59,8 +61,7 @@ jobs:
     - name: Release
       uses: softprops/action-gh-release@v2
       with:
+        token: ${{ secrets.PRIVATE_TOKEN }}
         files: |
           target/i686-pc-windows-msvc/release/gmsv_serverstat_win32.dll
           target/x86_64-pc-windows-msvc/release/gmsv_serverstat_win64.dll
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
