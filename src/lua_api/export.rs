@@ -3,77 +3,77 @@ use gmod::lua::State as LuaState;
 use crate::sysinfo::*;
 
 pub trait SysInfoResponseData: Send {
-	unsafe fn push_lua(&self, lua: LuaState) -> i32;
-	unsafe fn push_lua_struct_fields(&self, _lua: LuaState) {
-		unreachable!();
-	}
+    unsafe fn push_lua(&self, lua: LuaState) -> i32;
+    unsafe fn push_lua_struct_fields(&self, _lua: LuaState) {
+        unreachable!();
+    }
 }
 
 impl SysInfoResponseData for f64 {
-	unsafe fn push_lua(&self, lua: LuaState) -> i32 {
-		lua.push_number(*self);
-		1
-	}
+    unsafe fn push_lua(&self, lua: LuaState) -> i32 {
+        lua.push_number(*self);
+        1
+    }
 }
 
 impl SysInfoResponseData for u16 {
-	unsafe fn push_lua(&self, lua: LuaState) -> i32 {
-		lua.push_number(*self as f64);
-		1
-	}
+    unsafe fn push_lua(&self, lua: LuaState) -> i32 {
+        lua.push_number(*self as f64);
+        1
+    }
 }
 
 impl SysInfoResponseData for AllProcess {
-	unsafe fn push_lua(&self, lua: LuaState) -> i32 {
-		lua.create_table(0, 2);
-		self.push_lua_struct_fields(lua);
-		1
-	}
+    unsafe fn push_lua(&self, lua: LuaState) -> i32 {
+        lua.create_table(0, 2);
+        self.push_lua_struct_fields(lua);
+        1
+    }
 
-	unsafe fn push_lua_struct_fields(&self, lua: LuaState) {
-		self.cpu_usage.push_lua(lua);
-		lua.set_field(-2, lua_string!("ProcessCPUUsage"));
+    unsafe fn push_lua_struct_fields(&self, lua: LuaState) {
+        self.cpu_usage.push_lua(lua);
+        lua.set_field(-2, lua_string!("ProcessCPUUsage"));
 
-		self.memory_usage.push_lua(lua);
-		lua.set_field(-2, lua_string!("ProcessMemoryUsage"));
-	}
+        self.memory_usage.push_lua(lua);
+        lua.set_field(-2, lua_string!("ProcessMemoryUsage"));
+    }
 }
 
 impl SysInfoResponseData for AllSystem {
-	unsafe fn push_lua(&self, lua: LuaState) -> i32 {
-		lua.create_table(0, 6);
-		self.push_lua_struct_fields(lua);
-		1
-	}
+    unsafe fn push_lua(&self, lua: LuaState) -> i32 {
+        lua.create_table(0, 6);
+        self.push_lua_struct_fields(lua);
+        1
+    }
 
-	unsafe fn push_lua_struct_fields(&self, lua: LuaState) {
-		self.cpu_usage.push_lua(lua);
-		lua.set_field(-2, lua_string!("SystemCPUUsage"));
+    unsafe fn push_lua_struct_fields(&self, lua: LuaState) {
+        self.cpu_usage.push_lua(lua);
+        lua.set_field(-2, lua_string!("SystemCPUUsage"));
 
-		self.memory_usage.push_lua(lua);
-		lua.set_field(-2, lua_string!("SystemMemoryUsage"));
+        self.memory_usage.push_lua(lua);
+        lua.set_field(-2, lua_string!("SystemMemoryUsage"));
 
-		self.total_memory.push_lua(lua);
-		lua.set_field(-2, lua_string!("SystemTotalMemory"));
+        self.total_memory.push_lua(lua);
+        lua.set_field(-2, lua_string!("SystemTotalMemory"));
 
-		self.available_memory.push_lua(lua);
-		lua.set_field(-2, lua_string!("SystemAvailableMemory"));
+        self.available_memory.push_lua(lua);
+        lua.set_field(-2, lua_string!("SystemAvailableMemory"));
 
-		self.logical_cpus.push_lua(lua);
-		lua.set_field(-2, lua_string!("LogicalCPUs"));
+        self.logical_cpus.push_lua(lua);
+        lua.set_field(-2, lua_string!("LogicalCPUs"));
 
-		self.physical_cpus.push_lua(lua);
-		lua.set_field(-2, lua_string!("PhysicalCPUs"));
-	}
+        self.physical_cpus.push_lua(lua);
+        lua.set_field(-2, lua_string!("PhysicalCPUs"));
+    }
 }
 
 impl SysInfoResponseData for (AllSystem, AllProcess) {
-	unsafe fn push_lua(&self, lua: LuaState) -> i32 {
-		lua.create_table(0, 8);
-		self.0.push_lua_struct_fields(lua);
-		self.1.push_lua_struct_fields(lua);
-		1
-	}
+    unsafe fn push_lua(&self, lua: LuaState) -> i32 {
+        lua.create_table(0, 8);
+        self.0.push_lua_struct_fields(lua);
+        self.1.push_lua_struct_fields(lua);
+        1
+    }
 }
 
 macro_rules! sysinfo {
@@ -115,16 +115,16 @@ macro_rules! sysinfo {
 }
 
 sysinfo!(
-	(process_cpu_usage, ProcessCPUUsage);
-	(process_memory_usage, ProcessMemoryUsage);
-	(system_cpu_usage, SystemCPUUsage);
-	(system_memory_usage, SystemMemoryUsage);
-	(system_total_memory, SystemTotalMemory);
-	(system_available_memory, SystemAvailableMemory);
-	(logical_cpus, LogicalCPUs);
-	(physical_cpus, PhysicalCPUs);
-	(all, All);
-	(all_system, AllSystem);
-	(all_process, AllProcess);
-	(realtime, RealtimeData);
+    (process_cpu_usage, ProcessCPUUsage);
+    (process_memory_usage, ProcessMemoryUsage);
+    (system_cpu_usage, SystemCPUUsage);
+    (system_memory_usage, SystemMemoryUsage);
+    (system_total_memory, SystemTotalMemory);
+    (system_available_memory, SystemAvailableMemory);
+    (logical_cpus, LogicalCPUs);
+    (physical_cpus, PhysicalCPUs);
+    (all, All);
+    (all_system, AllSystem);
+    (all_process, AllProcess);
+    (realtime, RealtimeData);
 );
