@@ -22,8 +22,6 @@ fn with_system<R>(f: impl FnOnce(&mut System) -> R) -> R {
     SYSTEM.with(|sys| f(&mut sys.borrow_mut()))
 }
 
-// ── Scalar metrics ───────────────────────────────────────────────────────
-
 pub fn system_cpu_usage() -> f64 {
     fn read(sys: &mut System) -> f64 {
         sys.refresh_cpu_all();
@@ -127,8 +125,6 @@ pub fn system_swap_total() -> f64 {
     *VALUE
 }
 
-// ── Batched reads for the Prometheus refresh loop ────────────────────────
-
 /// All process metrics from a single `refresh_processes` call.
 pub struct ProcessMetrics {
     pub cpu_usage: f64,
@@ -185,8 +181,6 @@ pub fn system_memory_metrics() -> SystemMemoryMetrics {
         }
     })
 }
-
-// ── Bundle types (Lua API only) ──────────────────────────────────────────
 
 #[cfg(feature = "lua-api")]
 #[derive(Copy, Clone, Debug)]

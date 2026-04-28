@@ -43,8 +43,6 @@ pub fn start() {
 
     eprintln!("[serverstat] Prometheus metrics on http://{addr}/metrics");
 
-    // ── Descriptions (become HELP lines in Prometheus output) ────────
-
     // Process metrics (per-server)
     metrics::describe_gauge!(
         "srcds_process_cpu_usage",
@@ -95,7 +93,6 @@ pub fn start() {
     metrics::describe_gauge!("srcds_logical_cpus", "Number of logical CPU cores");
     metrics::describe_gauge!("srcds_physical_cpus", "Number of physical CPU cores");
 
-    // ── Static values — set once ─────────────────────────────────────
     metrics::gauge!("srcds_system_memory_total_mib").set(sysinfo::system_total_memory());
     metrics::gauge!("srcds_system_swap_total_mib").set(sysinfo::system_swap_total());
     metrics::gauge!("srcds_logical_cpus").set(sysinfo::logical_cpus() as f64);
